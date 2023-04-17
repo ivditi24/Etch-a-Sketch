@@ -1,14 +1,12 @@
 const container = document.querySelector('.container');
 const dimensionsDisplay  = document.querySelector('.dimensions');
 const range = document.querySelector('input[type="range"]');
-const btns = document.querySelector('.btns');
 const colorPicker = document.querySelector('input[type="color"]');
-const pixels = document.querySelectorAll('div[data-value="pixel"]');
+const pixels = container.querySelectorAll('div');
 const randomColorsBtn = document.querySelector('.rainbow');
 const eraseBtn = document.querySelector('.erase');
 const clearBtn = document.querySelector('.clear');
 const borders = document.querySelector('.border');
-
 
 let mouseDown = false;
 let color = '#1D5386';
@@ -19,7 +17,7 @@ let eraseMode = false;
 //Change dimensions
 range.addEventListener('input', e => {
     dimensionsDisplay.innerHTML = `${e.target.value} x ${e.target.value}`;
-    document.querySelectorAll('div[data-value="pixel"]').forEach(pixel => pixel.remove());
+    container.querySelectorAll('div').forEach(pixel => pixel.remove());
     createGrid(e.target.value);
 });
 
@@ -27,11 +25,24 @@ range.addEventListener('input', e => {
 
 colorPicker.addEventListener('input', e => {
     color = e.target.value;
+    if(eraseMode) {
+        eraseMode = false;
+        eraseBtn.classList.remove('active');
+    }
+    if(randomColorsBtn.classList.contains('active')) {
+        randomColorsBtn.classList.remove('active');
+        rainbow = false;
+    }
 });
 
 
 //Other Controls
 randomColorsBtn.addEventListener('click', e => {
+        if(eraseMode) {
+            eraseMode = false;
+            eraseBtn.classList.remove('active');
+        };
+
         rainbow = true;
         e.target.classList.toggle('active');
         if(!e.target.classList.contains('active')) {
@@ -44,23 +55,31 @@ randomColorsBtn.addEventListener('click', e => {
 eraseBtn.addEventListener('click', e => {
         eraseMode = true;
         e.target.classList.toggle('active');
+
+        if(rainbow) rainbow = false;
+        randomColorsBtn.classList.remove('active');
         if(!e.target.classList.contains('active')) {
-            eraseMode = false;
+            eraseMode = false;    
         }
 });
 
 
 clearBtn.addEventListener('click', e => {
-    document.querySelectorAll('div[data-value="pixel"]').forEach(item => item.style.backgroundColor = 'transparent');
+    container.querySelectorAll('div').forEach(item => item.style.backgroundColor = 'transparent');
+    color = colorPicker.value;
+    if(eraseMode) {
+        eraseMode = false;
+        eraseBtn.classList.remove('active');
+    }
 });
 
 
 borders.addEventListener('click', e => {
     e.target.classList.toggle('active');
     if(e.target.classList.contains('active')) {
-        document.querySelectorAll('div[data-value="pixel"]').forEach(item => item.classList.remove('pixel'));
+        container.querySelectorAll('div').forEach(item => item.classList.add('pixel'));
     } else {
-        document.querySelectorAll('div[data-value="pixel"]').forEach(item => item.classList.add('pixel'));
+        container.querySelectorAll('div').forEach(item => item.classList.remove('pixel'));
     }
 })
 
@@ -70,11 +89,9 @@ function generateRandomColor() {
 }
 
 
-container.addEventListener('mousedown', () => mouseDown = true);
 container.addEventListener('mouseup', () => mouseDown = false);
+container.addEventListener('mousedown', () => mouseDown = true);
 
-container.addEventListener('mousedown', draw);
-container.addEventListener('mouseover', draw);
 //Draw
 
 function draw(e) {
@@ -83,9 +100,7 @@ function draw(e) {
     if(rainbow) generateRandomColor();
     if(eraseMode)  color = 'transparent';
     e.target.style['background-color'] = color;
-    console.log(e.target);
 }
-
 
 
 //Create Grid
@@ -94,12 +109,11 @@ function createGrid(s = 16) {
     for(let i = 0; i < s; i++) {
         for(let j = 0; j < s; j++) {
             const pixels = document.createElement('div');
-            pixels.setAttribute('data-value', 'pixel');
-            pixels.classList.add('pixel');
             pixels.style.width = `calc(100% / ${s})`;
             pixels.style.height = `calc(100% / ${s})`;
-            pixels.classList.add('grid');
-            container.append(pixels);
+            pixels.addEventListener('mousedown', draw);
+            pixels.addEventListener('mouseover', draw);
+            container.appendChild(pixels);
         }
     }
 }

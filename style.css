@@ -133,6 +133,10 @@ button.active {
 label {
     font-size: 1.2rem;
 }
+
+.container div {
+    user-select: none;
+}
   
 
 @media (max-width: 1200px) {
